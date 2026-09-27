@@ -21,11 +21,12 @@ function Auth() {
     try {
       if (mode === "register") {
         await registerUser(form);
-        // auto-login right after registering
       }
 
       const res = await loginUser({ email: form.email, password: form.password });
-      const meRes = await getMe(); // need user data, but getMe needs the token stored first
+      localStorage.setItem("access_token", res.data.access);
+      localStorage.setItem("refresh_token", res.data.refresh);
+      const meRes = await getMe();
       login(res.data, meRes.data);
       navigate("/feed");
     } catch (err) {
