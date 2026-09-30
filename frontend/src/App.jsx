@@ -1,18 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./pages/Auth";
 import ProfileSetup from "./pages/ProfileSetup";
+import Feed from "./pages/Feed";
 import { useAuth } from "./context/AuthContext";
-
-function Feed() {
-  const { user, logout } = useAuth();
-  return (
-    <div className="p-8">
-      <h1 className="text-xl">Welcome, {user?.username}</h1>
-      <a href="/profile" className="text-blue-600 block mt-2">Edit Profile</a>
-      <button onClick={logout} className="text-blue-600 mt-2">Log out</button>
-    </div>
-  );
-}
 
 function App() {
   const { user, loading } = useAuth();
