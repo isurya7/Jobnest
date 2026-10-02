@@ -9,6 +9,7 @@ urlpatterns = [
     path("api/auth/", include("accounts.urls")),
     path("api/profile/", include("profiles.urls")),
     path("api/jobs/", include("jobs.urls")),
+    path("api/applications/", include("applications.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
