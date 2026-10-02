@@ -9,7 +9,7 @@ class JobSkillInline(admin.TabularInline):
 
 @admin.register(JobPosting)
 class JobPostingAdmin(admin.ModelAdmin):
-    list_display = ("title", "company", "source", "posted_at", "is_expired")
+    list_display = ("id", "title", "company", "source", "posted_at", "is_expired")
     list_filter = ("source",)
     search_fields = ("title", "company")
     inlines = [JobSkillInline]

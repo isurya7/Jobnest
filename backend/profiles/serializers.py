@@ -20,6 +20,9 @@ class AddSkillSerializer(serializers.Serializer):
     proficiency = serializers.IntegerField(min_value=1, max_value=5, default=3)
 
 
+class ResumeUploadSerializer(serializers.Serializer):
+    resume = serializers.FileField()
+
 class SeekerProfileSerializer(serializers.ModelSerializer):
     seeker_skills = SeekerSkillSerializer(
         source="seekerskill_set", many=True, read_only=True

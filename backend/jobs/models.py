@@ -5,11 +5,12 @@ from profiles.models import Skill
 
 
 class JobPosting(models.Model):
-    source = models.CharField(max_length=50)  # "remotive" or "arbeitnow"
+    source = models.CharField(max_length=50)  
     external_id = models.CharField(max_length=200)
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
+    embedding = models.JSONField(null=True, blank=True)
     description = models.TextField(blank=True)
     redirect_url = models.URLField(max_length=500)
     posted_at = models.DateTimeField(null=True, blank=True)
