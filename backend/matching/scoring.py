@@ -32,3 +32,21 @@ def score_to_tag(score):
         return "Medium match"
     else:
         return "Low match"
+
+
+def compute_match_breakdown(seeker_skill_ids, seeker_skill_names, job_skill_ids, job_skill_names, seeker_embedding, job_embedding):
+    matched_skills = list(set(seeker_skill_names) & set(job_skill_names))
+    missing_skills = list(set(job_skill_names) - set(seeker_skill_names))
+
+    skill_score = skill_overlap_score(seeker_skill_ids, job_skill_ids)
+    desc_score = description_similarity_score(seeker_embedding, job_embedding)
+    final_score = round((0.6 * skill_score) + (0.4 * desc_score), 1)
+
+    return {
+        "final_score": final_score,
+        "match_tag": score_to_tag(final_score),
+        "skill_score": round(skill_score, 1),
+        "description_score": round(desc_score, 1),
+        "matched_skills": matched_skills,
+        "missing_skills": missing_skills,
+    }

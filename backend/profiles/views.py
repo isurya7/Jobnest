@@ -6,6 +6,7 @@ from .models import Skill, SeekerProfile, SeekerSkill
 from .serializers import SeekerProfileSerializer, AddSkillSerializer, ResumeUploadSerializer
 from .resume_parser import extract_text_from_resume
 from matching.embeddings import compute_embedding
+from matching.skill_extraction import find_skills_in_text, extract_experience_years
 
 
 class MyProfileView(generics.RetrieveUpdateAPIView):
@@ -53,31 +54,39 @@ class ResumeUploadView(APIView):
         profile, _ = SeekerProfile.objects.get_or_create(user=request.user)
         resume_file = serializer.validated_data["resume"]
 
+        # remove the old file from disk if replacing
+        if profile.resume_file:
+            profile.resume_file.delete(save=False)
+
         profile.resume_file = resume_file
         profile.save()
 
         extracted_text = extract_text_from_resume(profile.resume_file)
+
+        if not extracted_text.strip():
+            return Response({
+                "message": "We couldn't read any text from this file. It may be a scanned image — try a text-based PDF or DOCX instead.",
+                "matched_skills": [],
+                "text_length": 0,
+                "success": False,
+            }, status=status.HTTP_200_OK)
+
         profile.resume_text = extracted_text
-        profile.save()
 
-        all_skills = Skill.objects.all()
-        matched_skills = []
-        text_lower = extracted_text.lower()
+        all_skills = list(Skill.objects.values_list("name", flat=True))
+        matched_names = find_skills_in_text(extracted_text, all_skills)
+        for name in matched_names:
+            skill = Skill.objects.get(name=name)
+            SeekerSkill.objects.update_or_create(seeker=profile, skill=skill, defaults={"proficiency": 3})
 
-        for skill in all_skills:
-            if skill.name.lower() in text_lower:
-                SeekerSkill.objects.update_or_create(
-                    seeker=profile,
-                    skill=skill,
-                    defaults={"proficiency": 3},
-                )
-                matched_skills.append(skill.name)
-
+        profile.experience_years = extract_experience_years(extracted_text)
         profile.resume_embedding = compute_embedding(extracted_text)
         profile.save()
 
         return Response({
             "message": "Resume uploaded and processed.",
-            "matched_skills": matched_skills,
+            "matched_skills": matched_names,
             "text_length": len(extracted_text),
+            "experience_years": profile.experience_years,
+            "success": True,
         })

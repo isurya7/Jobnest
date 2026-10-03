@@ -5,16 +5,23 @@ from profiles.models import Skill
 
 
 class JobPosting(models.Model):
-    source = models.CharField(max_length=50)  
+    source = models.CharField(max_length=50)
     external_id = models.CharField(max_length=200)
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
-    embedding = models.JSONField(null=True, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    work_mode = models.CharField(
+        max_length=20,
+        choices=[("remote", "Remote"), ("hybrid", "Hybrid"), ("onsite", "On-site")],
+        default="onsite",
+    )
     description = models.TextField(blank=True)
     redirect_url = models.URLField(max_length=500)
     posted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    embedding = models.JSONField(null=True, blank=True)
+    language = models.CharField(max_length=10, default="en")
 
     skills = models.ManyToManyField(Skill, through="JobSkill", related_name="jobs")
 

@@ -19,6 +19,7 @@ class SeekerProfile(models.Model):
     resume_file = models.FileField(upload_to="resumes/", blank=True, null=True)
     resume_text = models.TextField(blank=True)
     resume_embedding = models.JSONField(null=True, blank=True)
+    experience_years = models.PositiveSmallIntegerField(null=True, blank=True)
     linkedin_url = models.URLField(blank=True, null=True)
     skills = models.ManyToManyField(Skill, through="SeekerSkill", related_name="seekers")
 

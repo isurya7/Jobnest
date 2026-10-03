@@ -3,6 +3,8 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone as django_timezone
 from django.utils.dateparse import parse_datetime
 from jobs.models import JobPosting
+from jobs.parsing_utils import infer_work_mode, infer_country, clean_description, detect_language
+from matching.skill_extraction import find_skills_in_text
 from profiles.models import Skill
 
 
@@ -25,14 +27,24 @@ class Command(BaseCommand):
             else:
                 posted_at = raw_date
 
+            location = job_data.get("candidate_required_location", "")
+            raw_description = job_data.get("description", "")
+            description = clean_description(raw_description)
+            language = detect_language(raw_description)
+            work_mode = infer_work_mode(location, raw_description)
+            country = infer_country(location)
+
             job, created = JobPosting.objects.update_or_create(
                 source="remotive",
                 external_id=str(job_data["id"]),
                 defaults={
                     "title": job_data.get("title", ""),
                     "company": job_data.get("company_name", ""),
-                    "location": job_data.get("candidate_required_location", ""),
-                    "description": job_data.get("description", ""),
+                    "location": location,
+                    "country": country,
+                    "work_mode": work_mode,
+                    "description": description,
+                    "language": language,
                     "redirect_url": job_data.get("url", ""),
                     "posted_at": posted_at,
                 },
@@ -41,11 +53,10 @@ class Command(BaseCommand):
             if created:
                 created_count += 1
 
-            description_lower = job.description.lower()
-            for skill_name in all_skills:
-                if skill_name.lower() in description_lower:
-                    skill = Skill.objects.get(name=skill_name)
-                    job.skills.add(skill)
+            matched_names = find_skills_in_text(job.description, all_skills)
+            for name in matched_names:
+                skill = Skill.objects.get(name=name)
+                job.skills.add(skill)
 
         self.stdout.write(self.style.SUCCESS(
             f"Remotive: {created_count} new jobs created, "
